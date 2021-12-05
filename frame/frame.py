@@ -65,7 +65,7 @@ class Frame:
         if not pygame.image.get_extended():
             print("Your Pygame isn't built with extended image support.")
             print("It's likely this isn't going to work.")
-            sys.exit(1)
+            # sys.exit(1)
 
         modes = pygame.display.list_modes()
         self.mode = max(modes)
