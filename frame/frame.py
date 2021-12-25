@@ -4,6 +4,7 @@ from .photolib import PhotoLib
 
 import logging
 import sys
+import time
 import pygame
 from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT
 
@@ -51,7 +52,9 @@ class Frame:
         # rescale the image to fit the current display
         #image = pygame.transform.scale(image, max(modes))
         self.screen.fill(self.BackgroundColor)
-        self.screen.blit(self.image, self.offset)
+        if self.image is not None:
+            self.screen.blit(self.image, self.offset)
+            
         pygame.display.flip()
 
         self.InputHandler(pygame.event.get())
@@ -83,8 +86,13 @@ class Frame:
 
         clock = pygame.time.Clock()
 
-        while self.IsRunning:
-            dT = clock.tick(self.FPS)
-            self.Tick(dT)
+        try:
+            while self.IsRunning:
+                dT = clock.tick(self.FPS)
+                self.Tick(dT)
+                time.sleep(0.100)
+        except:
+            e = sys.exc_info()[0]
+            logging.debug(f"Unhandled exception: {e}")
             
         pygame.quit()

@@ -16,7 +16,7 @@ class Photo:
         logging.debug(f"Loading image, {self.fullpath}")
 
         # unload previous image
-        if self.image is not None and self.image.has_attr('unload'):
+        if self.image is not None and hasattr(self.image, 'unload'):
             self.image.unload()
             self.image = None
 

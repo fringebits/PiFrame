@@ -9,6 +9,8 @@ def main():
 
     importer = FolderImport()
     importer.AddPath("/home/pi/photo/PiFrame", True)
+    #importer.AddPath("//merlin/photo/PiFrame", True)
+
     # importer.AddPath("K:\\Cloud\\Dropbox (Personal)\\Camera Uploads", True)
     # importer.AddPath("K:\\Cloud\Dropbox (Personal)\\External\\Camera Uploads", True)
     # importer.AddPath("K:\\Cloud\\GoogleDrive\\Content\\Photos\\2021", True)

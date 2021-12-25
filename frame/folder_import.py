@@ -43,13 +43,15 @@ class FolderImport:
         self.folders = []
 
     def AddPath(self, path, recurse):
+        logging.debug(f"FolderImport: path=[{path}], recurse={recurse}")
         self.folders.append(Folder(path, recurse))
 
     def Run(self):
+        logging.debug(f"FolderImport, scanning for files")
         files = []
 
         for folder in self.folders:
             files = files + folder.Scan()
 
-        logging.debug(f"Imported {len(files)}")
+        logging.debug(f"FolderImport, imported {len(files)}")
         return files
