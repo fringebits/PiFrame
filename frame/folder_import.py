@@ -1,4 +1,5 @@
 
+import logging
 import os
 from .photo import Photo
 
@@ -11,11 +12,11 @@ class Folder:
         self.Info()
 
     def Info(self):
-        print("Folder: path={0}, recurse={1}".format(self.basepath, self.recurse))
+        logging.debug(f"Folder: path={self.basepath}, recurse={self.recurse}")
 
     def Scan(self):
         files = self.ScanInternal(self.basepath, self.recurse)
-        print("Imported {0} files from path={1}, recurse={2}".format(len(files), self.basepath, self.recurse))
+        logging.debug(f"Imported {len(files)} from path={self.basepath}, recurse={self.recurse}")
         return files
 
     def ScanInternal(self, filepath, recurse):
@@ -24,10 +25,11 @@ class Folder:
         dirs = []
         files = []
         for file in fullpaths:
+            logging.debug(f"\t{file}")
             if os.path.isdir(file): dirs.append(file)
             if os.path.isfile(file):
                 (name, ext) = os.path.splitext(file)
-                if (ext in self.PhotoExtensions):
+                if ("SYNOPHOTO_THUMB" not in name) and  (ext in self.PhotoExtensions):
                     files.append(Photo(file))
 
         if recurse == True:
@@ -35,7 +37,6 @@ class Folder:
                 files = files + self.ScanInternal(path, recurse)
             
         return files
-                    
 
 class FolderImport:
     def __init__(self):
@@ -50,5 +51,5 @@ class FolderImport:
         for folder in self.folders:
             files = files + folder.Scan()
 
-        print("Imported {0} files".format(len(files)))
+        logging.debug(f"Imported {len(files)}")
         return files

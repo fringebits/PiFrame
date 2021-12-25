@@ -1,4 +1,5 @@
 
+import logging
 import pygame
 from exif import Image
 
@@ -12,9 +13,16 @@ class Photo:
 
     def LoadImage(self, mode):
         #if self.image is None:
-        print("Loading image, {0}".format(self.fullpath))
+        logging.debug(f"Loading image, {self.fullpath}")
+
+        # unload previous image
+        if self.image is not None and self.image.has_attr('unload'):
+            self.image.unload()
+            self.image = None
+
         img = pygame.image.load(self.fullpath)
-        img = img.convert()
+        size = img.get_size()
+        logging.debug(f"Loaded image {self.fullpath}, size={size}")
 
         rot = self.GetOrientation()
 
@@ -49,12 +57,14 @@ class Photo:
         elif imgAspect < modeAspect:
             # wider than high
             s = mode[1] / size[1]
-            scale = (s * size[0], mode[1])
+            scale = (int(s * size[0]), mode[1])
         else:
             s = mode[0] / size[0]
-            scale = (mode[0], s * size[1])
+            scale = (mode[0], int(s * size[1]))
 
-        self.image = pygame.transform.scale(img, scale)
+        logging.debug(f"ImageTransform:  size={size}, scale={scale}")
+
+        self.image = pygame.transform.smoothscale(img, scale)
         self.offset = ((mode[0] - scale[0]) / 2, (mode[1] - scale[1]) / 2)
 
         return self.image
