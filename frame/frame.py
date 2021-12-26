@@ -45,8 +45,7 @@ class Frame:
         self.index += delta
         logging.debug(f"NextImage: index={self.index}")
         photo = self.lib.GetPhoto(self.index)
-        self.image = photo.LoadImage(self.mode)
-        self.offset = photo.offset
+        self.image, self.offset = photo.LoadImage(self.mode)
         
     def Tick(self, dT):
         # rescale the image to fit the current display

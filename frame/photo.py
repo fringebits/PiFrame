@@ -6,7 +6,6 @@ from exif import Image
 class Photo:
     def __init__(self, fullpath):
         self.fullpath = fullpath
-        self.image = None
 
     def Info(self):
         print("Photo: fullpath = " + self.fullpath)
@@ -14,11 +13,6 @@ class Photo:
     def LoadImage(self, mode):
         #if self.image is None:
         logging.debug(f"Loading image, {self.fullpath}")
-
-        # unload previous image
-        if self.image is not None and hasattr(self.image, 'unload'):
-            self.image.unload()
-            self.image = None
 
         img = pygame.image.load(self.fullpath)
         size = img.get_size()
@@ -64,10 +58,10 @@ class Photo:
 
         logging.debug(f"ImageTransform:  size={size}, scale={scale}")
 
-        self.image = pygame.transform.smoothscale(img, scale)
-        self.offset = ((mode[0] - scale[0]) / 2, (mode[1] - scale[1]) / 2)
+        image = pygame.transform.smoothscale(img, scale)
+        offset = ((mode[0] - scale[0]) / 2, (mode[1] - scale[1]) / 2)
 
-        return self.image
+        return image, offset
 
     def GetOrientation(self):
         try:
