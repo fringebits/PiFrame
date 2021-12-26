@@ -1,6 +1,7 @@
 
 from pygame.constants import USEREVENT
 from .photolib import PhotoLib
+from .photo import Photo
 
 import logging
 import sys
@@ -11,9 +12,7 @@ from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i
 class Frame:
 
     NextImageEvent = pygame.USEREVENT + 0
-    FlushImagesEvent = pygame.USEREVENT + 1
     WaitTime = 10000
-    FlushTime = 20000
     WaitDelta = 1000
     FPS = 60
     BackgroundColor = (0, 0, 0) #(128, 128, 0)
@@ -22,6 +21,7 @@ class Frame:
     def __init__(self):
         self.index = 0
         self.lib = PhotoLib()
+        self.photo = None
         self.showInfo = False
 
     def Shutdown(self):
@@ -35,43 +35,41 @@ class Frame:
         """A function to handle keyboard/mouse/device input events. """
         updateNextFrameEvent = False
         for event in events:  # Hit the ESC key to quit the slideshow.
-            if (event.type == self.FlushImagesEvent):
-                self.FlushImages()
-            elif (event.type == self.NextImageEvent and self.IsAutomatic):
+            if (event.type == self.NextImageEvent and self.IsAutomatic):
                 self.NextImage(+1)
-            elif (event.type == KEYDOWN and event.key == K_SPACE):
-                self.IsAutomatic = not self.IsAutomatic
-            elif (event.type == KEYDOWN and event.key == K_LEFT):
-                self.IsAutomatic = False
-                self.NextImage(-1)
-            elif (event.type == KEYDOWN and event.key == K_RIGHT):
-                self.IsAutomatic = False
-                self.NextImage(+1)
-            elif (event.type == KEYDOWN and event.key == K_p): # speed up the slide show
-                self.WaitTime = max(1000, self.WaitTime - self.WaitDelta)
-                updateNextFrameEvent = True
-            elif (event.type == KEYDOWN and event.key == K_o): # slow down the slide show
-                self.WaitTime += self.WaitDelta
-                updateNextFrameEvent = True
-            elif (event.type == QUIT or
-                (event.type == KEYDOWN and event.key == K_ESCAPE)):
+            elif (event.type == KEYDOWN):
+                if event.key == K_SPACE:
+                    self.IsAutomatic = not self.IsAutomatic
+                elif event.key == K_LEFT:
+                    self.IsAutomatic = False
+                    self.NextImage(-1)
+                elif event.key == K_RIGHT:
+                    self.IsAutomatic = False
+                    self.NextImage(+1)
+                elif event.key == K_p: # speed up the slide show
+                    self.WaitTime = max(1000, self.WaitTime - self.WaitDelta)
+                    updateNextFrameEvent = True
+                elif event.key == K_o: # slow down the slide show
+                    self.WaitTime += self.WaitDelta
+                    updateNextFrameEvent = True
+                elif event.key == K_ESCAPE:
+                    self.IsRunning = False
+                elif event.key == K_i:
+                    self.showInfo = not self.showInfo
+            elif (event.type == QUIT):
                 self.IsRunning = False
-            elif (event.type == KEYDOWN and event.key == K_i):
-                self.showInfo = not self.showInfo
+
         if updateNextFrameEvent:
             pygame.time.set_timer(Frame.NextImageEvent, self.WaitTime)
 
     def NextImage(self, delta=1):
         self.index += delta
         logging.debug(f"NextImage: index={self.index}")
+        if self.photo is not None:
+            self.photo.UnloadImage()
         self.photo = self.lib.GetPhoto(self.index)
         self.photo.LoadImage(self.mode)
 
-    def FlushImages(self):
-        loadedPhotos = self.lib.GetLoadedPhotos()
-        loadedPhotos.discard(self.photo) # eliminate the current photo
-        self.lib.UnloadPhotos(loadedPhotos)
-        
     def Tick(self, dT):
         # rescale the image to fit the current display
         #image = pygame.transform.scale(image, max(modes))
@@ -105,11 +103,9 @@ class Frame:
         # pygame.display.toggle_fullscreen()
 
         pygame.time.set_timer(Frame.NextImageEvent, Frame.WaitTime)
-        pygame.time.set_timer(Frame.FlushImagesEvent, Frame.FlushTime)
 
         self.NextImage(0)
         self.IsRunning = True
-
         clock = pygame.time.Clock()
 
         try:

@@ -27,11 +27,3 @@ class PhotoLib:
         photo = self.photos[index]
         print("GetPhoto {0}, {1}".format(index, photo.fullpath))
         return photo
-
-    # Get list of all the loaded photos
-    def GetLoadedPhotos(self):
-        return set([p for p in self.photos if p.IsLoaded()])
-
-    def UnloadPhotos(self, photos):
-        for p in photos:
-            p.UnloadImage()
