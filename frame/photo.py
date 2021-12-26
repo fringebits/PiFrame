@@ -22,7 +22,11 @@ class Photo:
 
         self.LoadExif()
 
-        rot = self.GetOrientation()
+        self.LogInfo()
+
+        rot = self.GetExifAttr('orientation')
+        if rot is None:
+            ""
         if rot == 2:
             print("RotateNoneFlipX")
         elif rot == 3:
@@ -73,9 +77,18 @@ class Photo:
         self.exif = None
 
     def LogInfo(self):
-        logging.debug(f"Photo: fullpath={self.fullpath}")
+        logging.debug(f"***PHOTO fullpath={self.fullpath}")
         logging.debug(f"\tIsLoaded = {self.IsLoaded()}")
+        if self.IsLoaded():
+            logging.debug(f"\t\tSize   = {self.image.get_size()}")
+            logging.debug(f"\t\tOffset = {self.offset}")
         logging.debug(f"\tHasExif  = {self.HasExif()}")
+        if self.HasExif():
+            keywords = self.exif.get('xp_keywords')
+            logging.debug(f"\t\tKeywords = {self.offset}")
+            data = self.exif.get_all()
+            for key in data.keys():
+                logging.debug(f"\t\t{key} = {data[key]}")    
 
     def GetImage(self, mode):
         if self.image is None:
@@ -102,8 +115,6 @@ class Photo:
         except:
             logging.warning(f'Failed to load exif info from {self.fullpath}')
 
-    def GetOrientation(self):
-        try:
-            return self.exif.orientation
-        except:
-            return 0
+    def GetExifAttr(self, attr):
+        if self.HasExif():
+            return self.exif.get(attr)

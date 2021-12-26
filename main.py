@@ -9,7 +9,7 @@ from logging.handlers import RotatingFileHandler
 logFile = 'piframe.log'
 logLevel = logging.DEBUG
 
-handler = RotatingFileHandler(logFile, mode='w', backupCount=5)
+handler = RotatingFileHandler(logFile, mode='a', backupCount=5)
 if os.path.isfile(logFile):
     handler.doRollover()
 logging.basicConfig(filename=logFile, level=logging.DEBUG)

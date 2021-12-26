@@ -5,9 +5,6 @@ from .photo import Photo
 from .folder_import import FolderImport
 
 class PhotoLib:
-
-    ShuffleCount = 7
-    
     def __init__(self):
         self.photos = []
 
@@ -15,12 +12,7 @@ class PhotoLib:
         self.photos = importer.Run()
 
     def Shuffle(self):
-        count = len(self.photos)
-
-        for n in range(self.ShuffleCount):
-            for x in range(count):
-                r = random.randint(0, count-1)
-                self.photos[x], self.photos[r] = self.photos[r], self.photos[x]
+        random.shuffle(self.photos)
 
     def GetPhoto(self, index):
         index = index % len(self.photos)
