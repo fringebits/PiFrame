@@ -1,6 +1,7 @@
 
 import logging
 import pygame
+import utils
 from exif import Image
 
 class Photo:
@@ -10,6 +11,7 @@ class Photo:
     def Info(self):
         print("Photo: fullpath = " + self.fullpath)
 
+    @utils.timer
     def LoadImage(self, mode):
         #if self.image is None:
         logging.debug(f"Loading image, {self.fullpath}")

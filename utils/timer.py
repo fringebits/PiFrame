@@ -12,11 +12,10 @@ def timer(func):
         value = func(*args, **kwargs)
         toc = time.perf_counter()
         elapsed_time = toc - tic
-        logging.debug(f"Elapsed time: {elapsed_time:0.4f} seconds")
+        logging.debug(f"Elapsed time = {elapsed_time:0.4f}s")
         return value
     return wrapper_timer
     
-
 # timer.py
 
 from dataclasses import dataclass, field

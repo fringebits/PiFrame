@@ -1,6 +1,7 @@
 
 import logging
 import os
+import utils
 from .photo import Photo
 
 class Folder:
@@ -20,21 +21,24 @@ class Folder:
         return files
 
     def ScanInternal(self, filepath, recurse):
-        dirfiles = os.listdir(filepath)
-        fullpaths = map(lambda name: os.path.join(filepath, name), dirfiles)
-        dirs = []
         files = []
-        for file in fullpaths:
-            logging.debug(f"\t{file}")
-            if os.path.isdir(file): dirs.append(file)
-            if os.path.isfile(file):
-                (name, ext) = os.path.splitext(file)
-                if ("SYNOPHOTO_THUMB" not in name) and  (ext in self.PhotoExtensions):
-                    files.append(Photo(file))
+        dirs = []
+        try:
+            dirfiles = os.listdir(filepath)
+            fullpaths = map(lambda name: os.path.join(filepath, name), dirfiles)
+            for file in fullpaths:
+                logging.debug(f"\t{file}")
+                if os.path.isdir(file): dirs.append(file)
+                if os.path.isfile(file):
+                    (name, ext) = os.path.splitext(file)
+                    if ("SYNOPHOTO_THUMB" not in name) and  (ext in self.PhotoExtensions):
+                        files.append(Photo(file))
 
-        if recurse == True:
-            for path in dirs:
-                files = files + self.ScanInternal(path, recurse)
+            if recurse == True:
+                for path in dirs:
+                    files = files + self.ScanInternal(path, recurse)
+        except OSError as e:
+            logging.warning(f"Exception ScanInternal({filepath}), Exception={e}")
             
         return files
 
@@ -46,6 +50,7 @@ class FolderImport:
         logging.debug(f"FolderImport: path=[{path}], recurse={recurse}")
         self.folders.append(Folder(path, recurse))
 
+    @utils.timer
     def Run(self):
         logging.debug(f"FolderImport, scanning for files")
         files = []

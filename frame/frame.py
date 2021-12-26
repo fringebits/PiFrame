@@ -20,6 +20,9 @@ class Frame:
         self.index = 0
         self.lib = PhotoLib()
 
+    def Shutdown(self):
+        pygame.quit()
+
     def Init(self, importer):
         self.lib.Init(importer)
         self.lib.Shuffle()
