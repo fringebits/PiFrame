@@ -2,14 +2,14 @@
 import logging
 import pygame
 import utils
-from exif import Image
+import exif
 
 class Photo:
     def __init__(self, fullpath):
         self.fullpath = fullpath
-
-    def Info(self):
-        print("Photo: fullpath = " + self.fullpath)
+        self.image = None
+        self.offset = None
+        self.exif = None
 
     @utils.timer
     def LoadImage(self, mode):
@@ -20,8 +20,9 @@ class Photo:
         size = img.get_size()
         logging.debug(f"Loaded image {self.fullpath}, size={size}")
 
-        rot = self.GetOrientation()
+        self.LoadExif()
 
+        rot = self.GetOrientation()
         if rot == 2:
             print("RotateNoneFlipX")
         elif rot == 3:
@@ -60,18 +61,49 @@ class Photo:
 
         logging.debug(f"ImageTransform:  size={size}, scale={scale}")
 
-        image = pygame.transform.smoothscale(img, scale)
-        offset = ((mode[0] - scale[0]) / 2, (mode[1] - scale[1]) / 2)
+        self.image = pygame.transform.smoothscale(img, scale)
+        self.offset = ((mode[0] - scale[0]) / 2, (mode[1] - scale[1]) / 2)
 
-        return image, offset
+        return self.image, self.offset
+
+    # Unload photo resources
+    def UnloadImage(self):
+        self.image = None
+        self.offset = None
+        self.exif = None
+
+    def LogInfo(self):
+        logging.debug(f"Photo: fullpath={self.fullpath}")
+        logging.debug(f"\tIsLoaded = {self.IsLoaded()}")
+        logging.debug(f"\tHasExif  = {self.HasExif()}")
+
+    def GetImage(self, mode):
+        if self.image is None:
+            return self.LoadImage(mode)
+        return self.image, self.offset
+
+    def HasExif(self):
+        return self.exif is not None
+
+    def IsLoaded(self):
+        return self.image is not None
+
+    def LoadExif(self):
+        try:
+            with open(self.fullpath, 'rb') as image_file:
+                self.exif = exif.Image(image_file)
+        except:
+            logging.warning(f'Failed to load exif info from {self.fullpath}')
+
+    def LoadExif(self):
+        try:
+            with open(self.fullpath, 'rb') as image_file:
+                self.exif = exif.Image(image_file)
+        except:
+            logging.warning(f'Failed to load exif info from {self.fullpath}')
 
     def GetOrientation(self):
         try:
-            with open(self.fullpath, 'rb') as image_file:
-                my_image = Image(image_file)
-
-            if my_image.has_exif:
-                return my_image.orientation
-
+            return self.exif.orientation
         except:
             return 0

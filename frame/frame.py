@@ -6,12 +6,15 @@ import logging
 import sys
 import time
 import pygame
-from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT
+from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p
 
 class Frame:
 
     NextImageEvent = pygame.USEREVENT + 0
+    FlushImagesEvent = pygame.USEREVENT + 1
     WaitTime = 10000
+    FlushTime = 20000
+    WaitDelta = 1000
     FPS = 60
     BackgroundColor = (0, 0, 0) #(128, 128, 0)
     IsAutomatic = True
@@ -19,6 +22,7 @@ class Frame:
     def __init__(self):
         self.index = 0
         self.lib = PhotoLib()
+        self.showInfo = False
 
     def Shutdown(self):
         pygame.quit()
@@ -29,34 +33,53 @@ class Frame:
     
     def InputHandler(self, events):
         """A function to handle keyboard/mouse/device input events. """
+        updateNextFrameEvent = False
         for event in events:  # Hit the ESC key to quit the slideshow.
-            if (event.type == self.NextImageEvent and self.IsAutomatic):
+            if (event.type == self.FlushImagesEvent):
+                self.FlushImages()
+            elif (event.type == self.NextImageEvent and self.IsAutomatic):
                 self.NextImage(+1)
-            if (event.type == KEYDOWN and event.key == K_SPACE):
+            elif (event.type == KEYDOWN and event.key == K_SPACE):
                 self.IsAutomatic = not self.IsAutomatic
-            if (event.type == KEYDOWN and event.key == K_LEFT):
+            elif (event.type == KEYDOWN and event.key == K_LEFT):
                 self.IsAutomatic = False
                 self.NextImage(-1)
-            if (event.type == KEYDOWN and event.key == K_RIGHT):
+            elif (event.type == KEYDOWN and event.key == K_RIGHT):
                 self.IsAutomatic = False
                 self.NextImage(+1)
-            if (event.type == QUIT or
+            elif (event.type == KEYDOWN and event.key == K_p): # speed up the slide show
+                self.WaitTime = max(1000, self.WaitTime - self.WaitDelta)
+                updateNextFrameEvent = True
+            elif (event.type == KEYDOWN and event.key == K_o): # slow down the slide show
+                self.WaitTime += self.WaitDelta
+                updateNextFrameEvent = True
+            elif (event.type == QUIT or
                 (event.type == KEYDOWN and event.key == K_ESCAPE)):
                 self.IsRunning = False
+            elif (event.type == KEYDOWN and event.key == K_i):
+                self.showInfo = not self.showInfo
+        if updateNextFrameEvent:
+            pygame.time.set_timer(Frame.NextImageEvent, self.WaitTime)
 
     def NextImage(self, delta=1):
         self.index += delta
         logging.debug(f"NextImage: index={self.index}")
-        photo = self.lib.GetPhoto(self.index)
-        self.image, self.offset = photo.LoadImage(self.mode)
+        self.photo = self.lib.GetPhoto(self.index)
+        self.photo.LoadImage(self.mode)
+
+    def FlushImages(self):
+        loadedPhotos = self.lib.GetLoadedPhotos()
+        loadedPhotos.discard(self.photo) # eliminate the current photo
+        self.lib.UnloadPhotos(loadedPhotos)
         
     def Tick(self, dT):
         # rescale the image to fit the current display
         #image = pygame.transform.scale(image, max(modes))
         self.screen.fill(self.BackgroundColor)
-        if self.image is not None:
-            self.screen.blit(self.image, self.offset)
-            
+        if self.photo is not None:
+            image, offset = self.photo.GetImage(self.mode)
+            self.screen.blit(image, offset)
+
         pygame.display.flip()
 
         self.InputHandler(pygame.event.get())
@@ -82,6 +105,7 @@ class Frame:
         # pygame.display.toggle_fullscreen()
 
         pygame.time.set_timer(Frame.NextImageEvent, Frame.WaitTime)
+        pygame.time.set_timer(Frame.FlushImagesEvent, Frame.FlushTime)
 
         self.NextImage(0)
         self.IsRunning = True
@@ -92,7 +116,7 @@ class Frame:
             while self.IsRunning:
                 dT = clock.tick(self.FPS)
                 self.Tick(dT)
-                time.sleep(0.100)
+                #time.sleep(0.100)
         except:
             e = sys.exc_info()[0]
             logging.debug(f"Unhandled exception: {e}")
