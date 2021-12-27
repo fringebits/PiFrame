@@ -3,6 +3,10 @@ import logging
 import pygame
 import utils
 import exif
+#from IPTCInfo3 import IPTCInfo
+from iptcinfo3 import IPTCInfo
+
+# https://pypi.org/project/IPTCInfo3/  (iptcinfo)
 
 class Photo:
     def __init__(self, fullpath):
@@ -10,6 +14,7 @@ class Photo:
         self.image = None
         self.offset = None
         self.exif = None
+        self.info = None
 
     @utils.timer
     def LoadImage(self, mode):
@@ -20,7 +25,7 @@ class Photo:
         size = img.get_size()
         logging.debug(f"Loaded image {self.fullpath}, size={size}")
 
-        self.LoadExif()
+        self.LoadMeta()
 
         self.LogInfo()
 
@@ -44,29 +49,33 @@ class Photo:
         elif rot == 8:
             print("Rotate270FlipNone")
             img = pygame.transform.rotate(img, 270)
-        
-        # scale to FIT
-        size = img.get_size()
-        imgAspect = size[0] / size[1]
-        modeAspect = mode[0] / mode[1]
 
-        # choose some default
-        scale = mode
+        if mode is not None:        
+            # scale to FIT
+            size = img.get_size()
+            imgAspect = size[0] / size[1]
+            modeAspect = mode[0] / mode[1]
 
-        if imgAspect == modeAspect:
+            # choose some default
             scale = mode
-        elif imgAspect < modeAspect:
-            # wider than high
-            s = mode[1] / size[1]
-            scale = (int(s * size[0]), mode[1])
+
+            if imgAspect == modeAspect:
+                scale = mode
+            elif imgAspect < modeAspect:
+                # wider than high
+                s = mode[1] / size[1]
+                scale = (int(s * size[0]), mode[1])
+            else:
+                s = mode[0] / size[0]
+                scale = (mode[0], int(s * size[1]))
+
+            logging.debug(f"ImageTransform:  size={size}, scale={scale}")
+
+            self.image = pygame.transform.smoothscale(img, scale)
+            self.offset = ((mode[0] - scale[0]) / 2, (mode[1] - scale[1]) / 2)
         else:
-            s = mode[0] / size[0]
-            scale = (mode[0], int(s * size[1]))
-
-        logging.debug(f"ImageTransform:  size={size}, scale={scale}")
-
-        self.image = pygame.transform.smoothscale(img, scale)
-        self.offset = ((mode[0] - scale[0]) / 2, (mode[1] - scale[1]) / 2)
+            self.image = img
+            self.offset = (0, 0)
 
         return self.image, self.offset
 
@@ -84,11 +93,13 @@ class Photo:
             logging.debug(f"\t\tOffset = {self.offset}")
         logging.debug(f"\tHasExif  = {self.HasExif()}")
         if self.HasExif():
-            keywords = self.exif.get('xp_keywords')
-            logging.debug(f"\t\tKeywords = {self.offset}")
             data = self.exif.get_all()
             for key in data.keys():
                 logging.debug(f"\t\t{key} = {data[key]}")    
+        logging.debug(f"\tHasIPTC  = {self.HasIPTC()}")
+        if self.HasIPTC():
+            for key in self.info._data:
+                logging.debug(f"\t\t{key} = {self.info._data[key]}")    
 
     def GetImage(self, mode):
         if self.image is None:
@@ -98,13 +109,21 @@ class Photo:
     def HasExif(self):
         return self.exif is not None
 
+    def HasIPTC(self):
+        return self.info is not None
+
     def IsLoaded(self):
         return self.image is not None
 
-    def LoadExif(self):
+    def LoadMeta(self):
         try:
             with open(self.fullpath, 'rb') as image_file:
                 self.exif = exif.Image(image_file)
+        except:
+            logging.warning(f'Failed to load exif info from {self.fullpath}')
+
+        try:
+            self.info = IPTCInfo(self.fullpath)
         except:
             logging.warning(f'Failed to load exif info from {self.fullpath}')
 
@@ -118,3 +137,8 @@ class Photo:
     def GetExifAttr(self, attr):
         if self.HasExif():
             return self.exif.get(attr)
+
+    def GetKeywords(self):
+        if self.HasIPTC():
+            return self.info['keywords']
+        return []

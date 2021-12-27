@@ -14,7 +14,7 @@ class Frame:
     NextImageEvent = pygame.USEREVENT + 0
     WaitTime = 10000
     WaitDelta = 1000
-    FPS = 60
+    FPS = 30
     BackgroundColor = (0, 0, 0) #(128, 128, 0)
     IsAutomatic = True
 
@@ -23,6 +23,8 @@ class Frame:
         self.lib = PhotoLib()
         self.photo = None
         self.showInfo = False
+        self.mode = None
+        self.runtime = 0
 
     def Shutdown(self):
         pygame.quit()
@@ -63,20 +65,30 @@ class Frame:
             pygame.time.set_timer(Frame.NextImageEvent, self.WaitTime)
 
     def NextImage(self, delta=1):
+        logging.debug(f"NextImage: index={self.index}, delta={delta}")
+
+        self.lib.UnloadPhoto(self.index)
         self.index += delta
-        logging.debug(f"NextImage: index={self.index}")
-        if self.photo is not None:
-            self.photo.UnloadImage()
-        self.photo = self.lib.GetPhoto(self.index)
-        self.photo.LoadImage(self.mode)
+        self.photo = self.lib.LoadPhoto(self.index, self.mode)
+        self.lib.LoadPhoto(self.index + 1, self.mode)
+        self.runtime = 0
+
+        # if self.photo is not None:
+        #     self.photo.UnloadImage()
+        # self.photo = self.lib.GetPhoto(self.index)
+        # self.photo.LoadImage(self.mode)
+        # self.lib.LoadPhoto(self.index+1)
 
     def Tick(self, dT):
-        # rescale the image to fit the current display
-        #image = pygame.transform.scale(image, max(modes))
+        self.runtime += dT
         self.screen.fill(self.BackgroundColor)
         if self.photo is not None:
             image, offset = self.photo.GetImage(self.mode)
             self.screen.blit(image, offset)
+
+            elapsed = (self.runtime / 1000.0)
+            surface = self.font.render(f'{self.index} {elapsed}', False, (255, 0, 0))
+            self.screen.blit(surface, (0, 0))
 
         pygame.display.flip()
 
@@ -85,7 +97,11 @@ class Frame:
         # Test for image support except pygame.error as err: print("Failed to display %s: %s" % (photo.fullpath, err))
 
     def Run(self):
+        self.NextImage(0)
+
         pygame.init()
+        pygame.font.init()
+        self.font = pygame.font.SysFont('Comic Sans MS', 30)
 
         # Test for image support
         if not pygame.image.get_extended():
