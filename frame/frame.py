@@ -3,11 +3,12 @@ from pygame.constants import USEREVENT
 from .photolib import PhotoLib
 from .photo import Photo
 
+from datetime import date, datetime, timedelta
 import logging
 import sys
 import time
 import pygame
-from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p
+from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d
 
 class Frame:
 
@@ -17,14 +18,21 @@ class Frame:
     FPS = 30
     BackgroundColor = (0, 0, 0) #(128, 128, 0)
     IsAutomatic = True
+    FontName = 'Comic Sans MS'
+    FontSize = 30
+    OutputStep = 35
+    DefaultCursor = (15, 15)
+    KeywordFilter = {b'GUTMANN', b'people', b'instagram'}
 
     def __init__(self):
         self.index = 0
         self.lib = PhotoLib()
         self.photo = None
-        self.showInfo = False
+        self.showInfo = True
+        self.showDebug = True
         self.mode = None
         self.runtime = 0
+        self.pos = Frame.DefaultCursor
 
     def Shutdown(self):
         pygame.quit()
@@ -58,6 +66,8 @@ class Frame:
                     self.IsRunning = False
                 elif event.key == K_i:
                     self.showInfo = not self.showInfo
+                elif event.key == K_d:
+                    self.showDebug = not self.showDebug
             elif (event.type == QUIT):
                 self.IsRunning = False
 
@@ -80,15 +90,32 @@ class Frame:
         # self.lib.LoadPhoto(self.index+1)
 
     def Tick(self, dT):
+        self.pos = Frame.DefaultCursor
+
         self.runtime += dT
         self.screen.fill(self.BackgroundColor)
         if self.photo is not None:
             image, offset = self.photo.GetImage(self.mode)
             self.screen.blit(image, offset)
 
-            elapsed = (self.runtime / 1000.0)
-            surface = self.font.render(f'{self.index} {elapsed}', False, (255, 0, 0))
-            self.screen.blit(surface, (0, 0))
+            if self.showDebug:
+                elapsed = (self.runtime / 1000.0)
+                self.OutputText(f'{self.index:-5} {elapsed:.1f}', (255, 0, 0))
+                self.OutputNewline()
+
+            if self.showInfo:
+                # year, month, day
+                timestamp = self.photo.GetCaptureDate()
+                self.OutputText(f'{timestamp.year}', (255, 0, 0))
+                self.OutputText(f'{timestamp:%B}', (255, 0, 0))
+                # delta = datetime.now() - timestamp
+                # total_years = delta.total_seconds() / (60 * 60 * 24 * 365)
+                # if total_years > 2:
+                #     self.OutputText(f'{total_years}yrs ago', (255, 0, 0))
+                self.OutputNewline()
+                keywords = [k for k in self.photo.GetKeywords() if k not in Frame.KeywordFilter]
+                for k in keywords:
+                    self.OutputText(k, (255, 0, 0))
 
         pygame.display.flip()
 
@@ -134,3 +161,14 @@ class Frame:
             logging.debug(f"Unhandled exception: {e}")
             
         pygame.quit()
+
+    def OutputText(self, text, color):
+        self.DrawText(text, color, self.pos)
+        self.OutputNewline()
+
+    def OutputNewline(self):
+        self.pos = (self.pos[0], self.pos[1] + self.OutputStep)
+
+    def DrawText(self, text, color, pos):
+        surface = self.font.render(text, False, color)
+        self.screen.blit(surface, pos)

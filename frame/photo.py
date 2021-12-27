@@ -3,10 +3,12 @@ import logging
 import pygame
 import utils
 import exif
+import datetime
 #from IPTCInfo3 import IPTCInfo
 from iptcinfo3 import IPTCInfo
 
 # https://pypi.org/project/IPTCInfo3/  (iptcinfo)
+# https://github.com/jamesacampbell/iptcinfo3/blob/master/iptcinfo3.py [iptc keys]
 
 class Photo:
     def __init__(self, fullpath):
@@ -15,6 +17,9 @@ class Photo:
         self.offset = None
         self.exif = None
         self.info = None
+
+    def __str__(self):
+        return self.fullpath
 
     @utils.timer
     def LoadImage(self, mode):
@@ -106,6 +111,18 @@ class Photo:
             return self.LoadImage(mode)
         return self.image, self.offset
 
+    # return YEAR, MONTH, DAY
+    def GetCaptureDate(self):
+        try:
+            timestamp = self.GetExifAttr('datetime_original')
+            if timestamp is not None:
+                parts = timestamp.split(' ')
+                parts = parts[0].split(':')
+                return datetime.datetime(int(parts[0]), int(parts[1]), int(parts[2]))
+        except:
+            logging.debug(f'Failed to get timestamp from {self}, timestamp={timestamp}')
+        return datetime.datetime(1900, 1, 1)
+
     def HasExif(self):
         return self.exif is not None
 
@@ -137,6 +154,7 @@ class Photo:
     def GetExifAttr(self, attr):
         if self.HasExif():
             return self.exif.get(attr)
+        return None
 
     def GetKeywords(self):
         if self.HasIPTC():
