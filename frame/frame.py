@@ -28,8 +28,9 @@ class Frame:
         self.index = 0
         self.lib = PhotoLib()
         self.photo = None
-        self.showInfo = True
-        self.showDebug = True
+        self.showInfo = False
+        self.showDebug = False
+        self.isWindowed = False
         self.mode = None
         self.runtime = 0
         self.pos = Frame.DefaultCursor
@@ -123,8 +124,13 @@ class Frame:
 
         # Test for image support except pygame.error as err: print("Failed to display %s: %s" % (photo.fullpath, err))
 
-    def Run(self):
+    def Run(self, isDebug):
         self.NextImage(0)
+
+        if isDebug:
+            self.isWindowed = True
+            self.showDebug = True
+            self.showInfo = True
 
         pygame.init()
         pygame.font.init()
@@ -136,14 +142,15 @@ class Frame:
             print("It's likely this isn't going to work.")
             sys.exit(1)
 
-        modes = pygame.display.list_modes()
-        self.mode = max(modes)
-        logging.debug(f"Setting mode = {self.mode}")
-        pygame.display.set_mode(self.mode)
+        pygame.display.set_caption("PiFrame")
+        if self.isWindowed:
+            self.mode = (1920, 1024)
+        else:
+            modes = pygame.display.list_modes()
+            self.mode = max(modes)
+            logging.debug(f"Setting mode = {self.mode}")
 
-        self.screen = pygame.display.get_surface()
-        # pygame.display.set_caption("PiFrame")
-        # pygame.display.toggle_fullscreen()
+        self.screen = pygame.display.set_mode(self.mode)
 
         pygame.time.set_timer(Frame.NextImageEvent, Frame.WaitTime)
 

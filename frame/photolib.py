@@ -7,7 +7,7 @@ from .folder_import import FolderImport
 
 class PhotoLib:
     def __init__(self):
-        self.photos = []
+        self.photos = [] # list of *photos to show*
 
     def Init(self, importer):
         self.photos = importer.Run()

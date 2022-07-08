@@ -8,6 +8,7 @@ from logging.handlers import RotatingFileHandler
 
 logFile = 'piframe.log'
 logLevel = logging.DEBUG
+isDebug = True
 
 handler = RotatingFileHandler(logFile, mode='a', backupCount=5)
 if os.path.isfile(logFile):
@@ -17,13 +18,16 @@ logging.basicConfig(filename=logFile, level=logging.DEBUG)
 def main():
     logging.debug("PiFrame main")
     importer = FolderImport()
-    importer.AddPath("/home/pi/photo/PiFrame", True)
-    importer.AddPath("//merlin/photo/PiFrame", True)
-
+    if isDebug:
+        importer.AddPath("//merlin/photo/BestOf2018", True)
+    else:
+        importer.AddPath("/home/pi/photo/PiFrame", True)
+        importer.AddPath("//merlin/photo/PiFrame", True)
+    
     try:
         frame = Frame()
         frame.Init(importer)
-        frame.Run()
+        frame.Run(isDebug)
 
     finally:
         frame.Shutdown()
