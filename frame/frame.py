@@ -99,6 +99,10 @@ class Frame:
             image, offset = self.photo.GetImage(self.mode)
             self.screen.blit(image, offset)
 
+            if not self.IsAutomatic:
+                self.OutputText(f'Paused', (255, 0, 0))
+                self.OutputNewline()
+
             if self.showDebug:
                 elapsed = (self.runtime / 1000.0)
                 self.OutputText(f'{self.index:-5} {elapsed:.1f}', (255, 0, 0))
@@ -144,7 +148,7 @@ class Frame:
 
         pygame.display.set_caption("PiFrame")
         if self.isWindowed:
-            self.mode = (1920, 1024)
+            self.mode = (768, 480)
         else:
             modes = pygame.display.list_modes()
             self.mode = max(modes)
