@@ -1,7 +1,7 @@
 
 from frame.folder_import import FolderImport
 from frame.frame import Frame
-from frame.server import FrameServer
+import frame.server as server
 
 import argparse
 
@@ -33,11 +33,12 @@ def main():
         importer.AddPath("//merlin/photo/PiFrame", True)
     
     try:
-        server = FrameServer()
-        server.start()
-
         frame = Frame()
         frame.Init(importer)
+
+        # start the bottle-webserver
+        server.Run(frame, args.debug)
+        
         frame.Run(args.debug)
 
     finally:

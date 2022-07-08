@@ -11,7 +11,6 @@ import pygame
 from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d
 
 class Frame:
-
     NextImageEvent = pygame.USEREVENT + 0
     WaitTime = 10000
     WaitDelta = 1000
@@ -74,6 +73,18 @@ class Frame:
 
         if updateNextFrameEvent:
             pygame.time.set_timer(Frame.NextImageEvent, self.WaitTime)
+
+    def GetCurrentIndex(self):
+        return self.index
+
+    def IsPaused(self):
+        return not self.IsAutomatic
+
+    def SetIsPaused(self, paused):
+        self.IsAutomatic = not paused
+
+    def GetCurrentPhoto(self):
+        return self.photo
 
     def NextImage(self, delta=1):
         logging.debug(f"NextImage: index={self.index}, delta={delta}")
@@ -183,3 +194,6 @@ class Frame:
     def DrawText(self, text, color, pos):
         surface = self.font.render(text, False, color)
         self.screen.blit(surface, pos)
+
+    def GetNumPhotos(self):
+        return len(self.lib.photos)
