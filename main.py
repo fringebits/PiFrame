@@ -29,7 +29,7 @@ def main():
     if isDebug:
         importer.AddPath("//merlin/photo/BestOf2018", True)
     else:
-        importer.AddPath("/home/pi/photo/PiFrame", True)
+        importer.AddPath("./content", True)
         importer.AddPath("//merlin/photo/PiFrame", True)
     
     try:
