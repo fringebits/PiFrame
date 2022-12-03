@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 
 logFile = 'piframe.log'
 logLevel = logging.DEBUG
-isDebug = True
+isDebug = False
 
 handler = RotatingFileHandler(logFile, mode='a', backupCount=5)
 if os.path.isfile(logFile):

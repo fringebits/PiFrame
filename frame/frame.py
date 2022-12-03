@@ -140,8 +140,6 @@ class Frame:
         # Test for image support except pygame.error as err: print("Failed to display %s: %s" % (photo.fullpath, err))
 
     def Run(self, isDebug):
-        self.NextImage(0)
-
         if isDebug:
             self.isWindowed = True
             self.showDebug = True
