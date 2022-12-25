@@ -1,5 +1,5 @@
-
 import logging
+logger = logging.getLogger()
 import pygame
 import utils
 import exif
@@ -24,11 +24,11 @@ class Photo:
     @utils.timer
     def LoadImage(self, mode):
         #if self.image is None:
-        logging.debug(f"Loading image, {self.fullpath}")
+        logger.debug(f"Loading image, {self.fullpath}")
 
         img = pygame.image.load(self.fullpath)
         size = img.get_size()
-        logging.debug(f"Loaded image {self.fullpath}, size={size}")
+        logger.debug(f"Loaded image {self.fullpath}, size={size}")
 
         self.LoadMeta()
 
@@ -74,7 +74,7 @@ class Photo:
                 s = mode[0] / size[0]
                 scale = (mode[0], int(s * size[1]))
 
-            logging.debug(f"ImageTransform:  size={size}, scale={scale}")
+            logger.debug(f"ImageTransform:  size={size}, scale={scale}")
 
             self.image = pygame.transform.smoothscale(img, scale)
             self.offset = ((mode[0] - scale[0]) / 2, (mode[1] - scale[1]) / 2)
@@ -91,20 +91,20 @@ class Photo:
         self.exif = None
 
     def LogInfo(self):
-        logging.debug(f"***PHOTO fullpath={self.fullpath}")
-        logging.debug(f"\tIsLoaded = {self.IsLoaded()}")
+        logger.debug(f"***PHOTO fullpath={self.fullpath}")
+        logger.debug(f"\tIsLoaded = {self.IsLoaded()}")
         if self.IsLoaded():
-            logging.debug(f"\t\tSize   = {self.image.get_size()}")
-            logging.debug(f"\t\tOffset = {self.offset}")
-        logging.debug(f"\tHasExif  = {self.HasExif()}")
+            logger.debug(f"\t\tSize   = {self.image.get_size()}")
+            logger.debug(f"\t\tOffset = {self.offset}")
+        logger.debug(f"\tHasExif  = {self.HasExif()}")
         if self.HasExif():
             data = self.exif.get_all()
             for key in data.keys():
-                logging.debug(f"\t\t{key} = {data[key]}")    
-        logging.debug(f"\tHasIPTC  = {self.HasIPTC()}")
+                logger.debug(f"\t\t{key} = {data[key]}")    
+        logger.debug(f"\tHasIPTC  = {self.HasIPTC()}")
         if self.HasIPTC():
             for key in self.info._data:
-                logging.debug(f"\t\t{key} = {self.info._data[key]}")    
+                logger.debug(f"\t\t{key} = {self.info._data[key]}")    
 
     def GetImage(self, mode):
         if self.image is None:
@@ -120,7 +120,7 @@ class Photo:
                 parts = parts[0].split(':')
                 return datetime.datetime(int(parts[0]), int(parts[1]), int(parts[2]))
         except:
-            logging.debug(f'Failed to get timestamp from {self}, timestamp={timestamp}')
+            logger.debug(f'Failed to get timestamp from {self}, timestamp={timestamp}')
         return datetime.datetime(1900, 1, 1)
 
     def HasExif(self):
@@ -137,19 +137,19 @@ class Photo:
             with open(self.fullpath, 'rb') as image_file:
                 self.exif = exif.Image(image_file)
         except:
-            logging.warning(f'Failed to load exif info from {self.fullpath}')
+            logger.warning(f'Failed to load exif info from {self.fullpath}')
 
         try:
             self.info = IPTCInfo(self.fullpath)
         except:
-            logging.warning(f'Failed to load exif info from {self.fullpath}')
+            logger.warning(f'Failed to load exif info from {self.fullpath}')
 
     def LoadExif(self):
         try:
             with open(self.fullpath, 'rb') as image_file:
                 self.exif = exif.Image(image_file)
         except:
-            logging.warning(f'Failed to load exif info from {self.fullpath}')
+            logger.warning(f'Failed to load exif info from {self.fullpath}')
 
     def GetExifAttr(self, attr):
         if self.HasExif():

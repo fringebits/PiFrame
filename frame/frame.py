@@ -5,6 +5,8 @@ from .photo import Photo
 
 from datetime import date, datetime, timedelta
 import logging
+logger = logging.getLogger()
+
 import sys
 import time
 import pygame
@@ -87,7 +89,7 @@ class Frame:
         return self.photo
 
     def NextImage(self, delta=1):
-        logging.debug(f"NextImage: index={self.index}, delta={delta}")
+        logger.debug(f"NextImage: index={self.index}, delta={delta}")
 
         self.lib.UnloadPhoto(self.index)
         self.index += delta
@@ -140,6 +142,7 @@ class Frame:
         # Test for image support except pygame.error as err: print("Failed to display %s: %s" % (photo.fullpath, err))
 
     def Run(self, isDebug):
+        
         if isDebug:
             self.isWindowed = True
             self.showDebug = True
@@ -178,7 +181,7 @@ class Frame:
                 #time.sleep(0.100)
         except:
             e = sys.exc_info()[0]
-            logging.debug(f"Unhandled exception: {e}")
+            logger.debug(f"Unhandled exception: {e}")
             
         pygame.quit()
 

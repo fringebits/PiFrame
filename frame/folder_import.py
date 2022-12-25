@@ -1,5 +1,7 @@
 
 import logging
+logger = logging.getLogger()
+
 import os
 import utils
 from .photo import Photo
@@ -13,11 +15,11 @@ class Folder:
         self.Info()
 
     def Info(self):
-        logging.debug(f"Folder: path={self.basepath}, recurse={self.recurse}")
+        logger.debug(f"Folder: path={self.basepath}, recurse={self.recurse}")
 
     def Scan(self):
         files = self.ScanInternal(self.basepath, self.recurse)
-        logging.debug(f"Imported {len(files)} from path={self.basepath}, recurse={self.recurse}")
+        logger.debug(f"Imported {len(files)} from path={self.basepath}, recurse={self.recurse}")
         return files
 
     def ScanInternal(self, filepath, recurse):
@@ -27,7 +29,7 @@ class Folder:
             dirfiles = os.listdir(filepath)
             fullpaths = map(lambda name: os.path.join(filepath, name), dirfiles)
             for file in fullpaths:
-                logging.debug(f"\t{file}")
+                logger.debug(f"\t{file}")
                 if os.path.isdir(file): dirs.append(file)
                 if os.path.isfile(file):
                     (name, ext) = os.path.splitext(file)
@@ -38,7 +40,7 @@ class Folder:
                 for path in dirs:
                     files = files + self.ScanInternal(path, recurse)
         except OSError as e:
-            logging.warning(f"Exception ScanInternal({filepath}), Exception={e}")
+            logger.warning(f"Exception ScanInternal({filepath}), Exception={e}")
             
         return files
 
@@ -47,16 +49,16 @@ class FolderImport:
         self.folders = []
 
     def AddPath(self, path, recurse):
-        logging.debug(f"FolderImport: path=[{path}], recurse={recurse}")
+        logger.debug(f"FolderImport: path=[{path}], recurse={recurse}")
         self.folders.append(Folder(path, recurse))
 
     @utils.timer
     def Run(self):
-        logging.debug(f"FolderImport, scanning for files")
+        logger.debug(f"FolderImport, scanning for files")
         files = []
 
         for folder in self.folders:
             files = files + folder.Scan()
 
-        logging.debug(f"FolderImport, imported {len(files)}")
+        logger.debug(f"FolderImport, imported {len(files)}")
         return files

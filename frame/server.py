@@ -1,5 +1,6 @@
 import bottle
 import logging
+logger = logging.getLogger()
 
 # Python 3 server example
 # from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -16,7 +17,7 @@ app = bottle.Bottle()
 
 @app.route('/')
 def index():
-    logging.debug(f"server.route(index):  Frame={frame}, Host={host}, Port={port}")
+    logger.debug(f"server.route(index):  Frame={frame}, Host={host}, Port={port}")
     photo = frame.GetCurrentPhoto()
     return f'''
         Image {frame.GetCurrentIndex()} of {frame.GetNumPhotos()} <br>
@@ -33,20 +34,20 @@ def index():
 
 @app.route('/pause')
 def pause():
-    logging.debug(f"server.route(pause):  Frame={frame}, Host={host}, Port={port}")
+    logger.debug(f"server.route(pause):  Frame={frame}, Host={host}, Port={port}")
     frame.SetIsPaused(not frame.IsPaused())
     bottle.redirect('/')
 
 @app.route('/next')
 def pause():
-    logging.debug(f"server.route(next):  Frame={frame}, Host={host}, Port={port}")
+    logger.debug(f"server.route(next):  Frame={frame}, Host={host}, Port={port}")
     frame.NextImage(+1)
     frame.SetIsPaused(True)
     bottle.redirect('/')
 
 @app.route('/prev')
 def pause():
-    logging.debug(f"server.route(prev):  Frame={frame}, Host={host}, Port={port}")
+    logger.debug(f"server.route(prev):  Frame={frame}, Host={host}, Port={port}")
     frame.NextImage(-1)
     frame.SetIsPaused(True)
     bottle.redirect('/')
@@ -57,7 +58,7 @@ def Run(_frame, _isdebug):
     global port
     frame = _frame
 
-    logging.debug(f"server.Run({frame}): NumPhotos={frame.GetNumPhotos()}")
+    logger.debug(f"server.Run({frame}): NumPhotos={frame.GetNumPhotos()}")
 
     if _isdebug:
         host = 'localhost'

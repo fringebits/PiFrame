@@ -4,6 +4,7 @@
 import functools
 import time
 import logging
+logger = logging.getLogger()
 
 def timer(func):
     @functools.wraps(func)
@@ -12,7 +13,7 @@ def timer(func):
         value = func(*args, **kwargs)
         toc = time.perf_counter()
         elapsed_time = toc - tic
-        logging.debug(f"Elapsed time = {elapsed_time:0.4f}s")
+        logger.info(f"Elapsed time = {elapsed_time:0.4f}s")
         return value
     return wrapper_timer
     

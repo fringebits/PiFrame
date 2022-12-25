@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import logging
+logger = logging.getLogger()
+
 import random
 from .photo import Photo
 from .folder_import import FolderImport
@@ -13,7 +15,7 @@ class PhotoLib:
         self.photos = importer.Run()
 
     def Shuffle(self):
-        logging.debug(f'Shuffling {len(self.photos)} photos')
+        logger.debug(f'Shuffling {len(self.photos)} photos')
         random.shuffle(self.photos)
 
     def GetPhoto(self, index):
