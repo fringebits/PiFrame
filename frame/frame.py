@@ -1,7 +1,7 @@
 
 from pygame.constants import USEREVENT
-from .photolib import PhotoLib
 from .photo import Photo
+from .catalog import Catalog
 
 from datetime import date, datetime, timedelta
 import logging
@@ -25,9 +25,9 @@ class Frame:
     DefaultCursor = (15, 15)
     KeywordFilter = {b'GUTMANN', b'people', b'instagram'}
 
-    def __init__(self):
+    def __init__(self, catalog):
         self.index = 0
-        self.lib = PhotoLib()
+        self.lib = None
         self.photo = None
         self.showInfo = False
         self.showDebug = False
@@ -39,10 +39,6 @@ class Frame:
     def Shutdown(self):
         pygame.quit()
 
-    def Init(self, importer):
-        self.lib.Init(importer)
-        self.lib.Shuffle()
-    
     def InputHandler(self, events):
         """A function to handle keyboard/mouse/device input events. """
         updateNextFrameEvent = False

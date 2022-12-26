@@ -6,6 +6,7 @@ import exif
 import datetime
 #from IPTCInfo3 import IPTCInfo
 from iptcinfo3 import IPTCInfo
+import json
 
 # https://pypi.org/project/IPTCInfo3/  (iptcinfo)
 # https://github.com/jamesacampbell/iptcinfo3/blob/master/iptcinfo3.py [iptc keys]
@@ -20,6 +21,18 @@ class Photo:
 
     def __str__(self):
         return self.fullpath
+
+    def CreateFromJson(json):
+        rec = Photo()
+        rec.fullpath = rec['fullpath']
+        rec.exif = rec['exif']
+        rec.info = rec['info']
+        rec.offset = None
+        rec.image = None
+        return rec
+
+    def toJson(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
 
     @utils.timer
     def LoadImage(self, mode):

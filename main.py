@@ -1,5 +1,6 @@
 from frame.folder_import import FolderImport
 from frame.frame import Frame
+from frame.catalog import Catalog
 import frame.server as server
 import argparse
 import os
@@ -44,8 +45,9 @@ def main():
     #     importer.AddPath("//merlin/photo/PiFrame", True)
     
     try:
-        frame = Frame()
-        frame.Init(importer)
+        catalog = Catalog(importer)
+
+        frame = Frame(catalog)
 
         # start the bottle-webserver
         server.Run(frame, args.debug)
