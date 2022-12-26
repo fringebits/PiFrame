@@ -12,6 +12,15 @@ import time
 import pygame
 from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d
 
+class Task:
+    def run(frame):
+        pass
+
+
+class Task_ResetTimer(Task):
+    def run(frame):
+        frame.runtime = 0
+
 class Frame:
     NextImageEvent = pygame.USEREVENT + 0
     WaitTime = 10000
@@ -27,7 +36,7 @@ class Frame:
 
     def __init__(self, catalog):
         self.index = 0
-        self.lib = None
+        self.lib = catalog
         self.photo = None
         self.showInfo = False
         self.showDebug = False
@@ -35,6 +44,7 @@ class Frame:
         self.mode = None
         self.runtime = 0
         self.pos = Frame.DefaultCursor
+        self.tasks = []
 
     def Shutdown(self):
         pygame.quit()
@@ -87,10 +97,11 @@ class Frame:
     def NextImage(self, delta=1):
         logger.debug(f"NextImage: index={self.index}, delta={delta}")
 
-        self.lib.UnloadPhoto(self.index)
+        #self.lib.UnloadPhoto(self.index)
         self.index += delta
         self.photo = self.lib.LoadPhoto(self.index, self.mode)
-        self.lib.LoadPhoto(self.index + 1, self.mode)
+        #self.lib.LoadPhoto(self.index + 1, self.mode)
+        self.reset_timer = True
         self.runtime = 0
 
         # if self.photo is not None:
@@ -103,6 +114,11 @@ class Frame:
         self.pos = Frame.DefaultCursor
 
         self.runtime += dT
+
+        if self.reset_timer:
+            self.runtime = 0
+            self.reset_timer = False
+            
         self.screen.fill(self.BackgroundColor)
         if self.photo is not None:
             image, offset = self.photo.GetImage(self.mode)
@@ -119,7 +135,7 @@ class Frame:
 
             if self.showInfo:
                 # year, month, day
-                timestamp = self.photo.GetCaptureDate()
+                timestamp = self.photo.timestamp
                 self.OutputText(f'{timestamp.year}', (255, 0, 0))
                 self.OutputText(f'{timestamp:%B}', (255, 0, 0))
                 # delta = datetime.now() - timestamp
@@ -127,7 +143,7 @@ class Frame:
                 # if total_years > 2:
                 #     self.OutputText(f'{total_years}yrs ago', (255, 0, 0))
                 self.OutputNewline()
-                keywords = [k for k in self.photo.GetKeywords() if k not in Frame.KeywordFilter]
+                keywords = [k for k in self.photo.keywords if k not in Frame.KeywordFilter]
                 for k in keywords:
                     self.OutputText(k, (255, 0, 0))
 
@@ -192,5 +208,5 @@ class Frame:
         surface = self.font.render(text, False, color)
         self.screen.blit(surface, pos)
 
-    def GetNumPhotos(self):
-        return len(self.lib.photos)
+    def getNumPhotos(self):
+        return self.lib.getNumPhotos()

@@ -30,6 +30,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", help="Debug mode, forces use of windows", action="store_true")
+    parser.add_argument("--noserver", help="Disable use of webserver", action="store_true")
     parser.add_argument("--source", help="Path to images to load.", default="./content")
     args = parser.parse_args()
 
@@ -43,19 +44,24 @@ def main():
     # else:
     #     importer.AddPath("./content", True)
     #     importer.AddPath("//merlin/photo/PiFrame", True)
+
+    frame = None
     
     try:
         catalog = Catalog(importer)
 
         frame = Frame(catalog)
 
-        # start the bottle-webserver
-        server.Run(frame, args.debug)
+        if not args.noserver:
+            # start the bottle-webserver
+            server.Run(frame, args.debug)
         
         frame.Run(args.debug)
 
     finally:
-        frame.Shutdown()
+        if frame is not None:
+            frame.Shutdown()
+            frame = None
 
 if __name__ == "__main__":
     main()

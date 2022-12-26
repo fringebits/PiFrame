@@ -58,7 +58,7 @@ def Run(_frame, _isdebug):
     global port
     frame = _frame
 
-    logger.debug(f"server.Run({frame}): NumPhotos={frame.GetNumPhotos()}")
+    logger.debug(f"server.Run({frame}): NumPhotos={frame.getNumPhotos()}")
 
     if _isdebug:
         host = 'localhost'

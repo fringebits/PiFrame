@@ -8,49 +8,71 @@ import utils
 import random
 from .photo import Photo
 
+class Config:
+    def __init__(self, basepath=None):
+        self.basepath = basepath
+        self.recurse = True
+
 class Catalog:
     PhotoExtensions = ['.jpg', '.png']
-    Filename = 'catalog.json'
+    Config = 'config.json'
+    Database = 'catalog.json'
 
     def __init__(self, source):
         self.source = source
         self.photos = []
-        if not self.load_catalog():
-            self.update_catalog()
+        self.load_database(False)
 
-    def update_catalog(self):
-        self.photos = self.source.Run()
-        self.write_catalog()
+    # def load_config(self):
+    #     try:
+    #         with open(Catalog.Config) as f:
+    #             data = json.load(f)
+    #         self.config = data
+    #         return True
+    #     except FileNotFoundError:
+    #         return False
+    #     # except:
+    #     #     # This is something other than missing a file! (probably bad data)
+    #     #     return False
 
-    def load_catalog(self):
-        try:
-            with open(Catalog.Filename) as f:
-                d = json.load(f)
-                print(d)
-            self.photos = [Photo.CreateFromJson(x) for x in d]
-            return len(self.photos) > 0
-        except FileNotFoundError:
-            self.photos = []
-            return False
+    # def write_config(self):
+    #     with open(Catalog.Filename, 'w') as f:
+    #         json_object = json.dumps(self, default=lambda o: o.__dict__, indent=4)
+    #         f.write(json_object)
 
-    def write_catalog(self):
-        data = []
-        for rec in self.photos:
-            data.append(rec.toJson())
-        with open(Catalog.Filename, 'w') as f:
-            f.write(data)        
+    def load_database(self, force_init):
+        is_new = not os.path.exists(Catalog.Database)
+        if force_init and not is_new:
+            os.remove(Catalog.Database)
+            is_new = True
 
-    def GetPhoto(self, index):
-        index = index % len(self.photos)
-        photo = self.photos[index]
-        #print("GetPhoto {0}, {1}".format(index, photo.fullpath))
-        return photo
+        if not is_new:
+            try:
+                with open(Catalog.Database) as f:
+                    data = json.load(f)
+                self.photos = data
+            except:
+                assert False
+        else:
+            self.init_database()
+            self.write_database()
+
+    def write_database(self):
+        with open(Catalog.Database, 'w') as f:
+            json_object = json.dumps(self.photos, default=lambda o: o.__dict__, indent=4)
+            f.write(json_object)
+
+    def init_database(self):
+        data = self.source.Run()
+        self.photos = [x.fullpath for x in data]
+
+    def numPhotos(self):
+        return len(self.photos)
 
     def LoadPhoto(self, index, mode):
-        photo = self.GetPhoto(index)
+        num = self.numPhotos()
+        assert num > 0, "Catalog doesn't have any photos"
+        fullpath = self.photos[index % num]
+        photo = Photo(fullpath)
         photo.LoadImage(mode)
         return photo
-
-    def UnloadPhoto(self, index):
-        photo = self.GetPhoto(index)
-        photo.UnloadImage()

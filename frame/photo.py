@@ -12,27 +12,21 @@ import json
 # https://github.com/jamesacampbell/iptcinfo3/blob/master/iptcinfo3.py [iptc keys]
 
 class Photo:
-    def __init__(self, fullpath):
+    def __init__(self, fullpath=None):
         self.fullpath = fullpath
+
+        ## meta data
+        self.keywords = []
+        self.title = None
+        self.timestamp = datetime.datetime(1900, 1, 1)
+        self.orientation = None
+
+        ## image data
         self.image = None
         self.offset = None
-        self.exif = None
-        self.info = None
 
     def __str__(self):
         return self.fullpath
-
-    def CreateFromJson(json):
-        rec = Photo()
-        rec.fullpath = rec['fullpath']
-        rec.exif = rec['exif']
-        rec.info = rec['info']
-        rec.offset = None
-        rec.image = None
-        return rec
-
-    def toJson(self):
-        return json.dumps(self, default=lambda o: o.__dict__)
 
     @utils.timer
     def LoadImage(self, mode):
@@ -43,11 +37,11 @@ class Photo:
         size = img.get_size()
         logger.debug(f"Loaded image {self.fullpath}, size={size}")
 
-        self.LoadMeta()
+        self.LoadMetaData()
 
         self.LogInfo()
 
-        rot = self.GetExifAttr('orientation')
+        rot = self.rotation
         if rot is None:
             ""
         if rot == 2:
@@ -101,7 +95,6 @@ class Photo:
     def UnloadImage(self):
         self.image = None
         self.offset = None
-        self.exif = None
 
     def LogInfo(self):
         logger.debug(f"***PHOTO fullpath={self.fullpath}")
@@ -109,67 +102,55 @@ class Photo:
         if self.IsLoaded():
             logger.debug(f"\t\tSize   = {self.image.get_size()}")
             logger.debug(f"\t\tOffset = {self.offset}")
-        logger.debug(f"\tHasExif  = {self.HasExif()}")
-        if self.HasExif():
-            data = self.exif.get_all()
-            for key in data.keys():
-                logger.debug(f"\t\t{key} = {data[key]}")    
-        logger.debug(f"\tHasIPTC  = {self.HasIPTC()}")
-        if self.HasIPTC():
-            for key in self.info._data:
-                logger.debug(f"\t\t{key} = {self.info._data[key]}")    
 
     def GetImage(self, mode):
         if self.image is None:
             return self.LoadImage(mode)
         return self.image, self.offset
 
-    # return YEAR, MONTH, DAY
-    def GetCaptureDate(self):
-        try:
-            timestamp = self.GetExifAttr('datetime_original')
-            if timestamp is not None:
-                parts = timestamp.split(' ')
-                parts = parts[0].split(':')
-                return datetime.datetime(int(parts[0]), int(parts[1]), int(parts[2]))
-        except:
-            logger.debug(f'Failed to get timestamp from {self}, timestamp={timestamp}')
-        return datetime.datetime(1900, 1, 1)
-
-    def HasExif(self):
-        return self.exif is not None
-
-    def HasIPTC(self):
-        return self.info is not None
-
     def IsLoaded(self):
         return self.image is not None
 
-    def LoadMeta(self):
-        try:
-            with open(self.fullpath, 'rb') as image_file:
-                self.exif = exif.Image(image_file)
-        except:
-            logger.warning(f'Failed to load exif info from {self.fullpath}')
+    def LoadMetaData(self):
+        exif_data = None
+        iptc_data = None
 
-        try:
-            self.info = IPTCInfo(self.fullpath)
-        except:
-            logger.warning(f'Failed to load exif info from {self.fullpath}')
+        #try:
+        with open(self.fullpath, 'rb') as image_file:
+            exif_data = exif.Image(image_file)                
+        # except:
+        #     logger.warning(f'Failed to load exif from {self.fullpath}')
 
-    def LoadExif(self):
-        try:
-            with open(self.fullpath, 'rb') as image_file:
-                self.exif = exif.Image(image_file)
-        except:
-            logger.warning(f'Failed to load exif info from {self.fullpath}')
+        #try:
+        self.info = IPTCInfo(self.fullpath)
+        # except:
+        #     logger.warning(f'Failed to load iptc info from {self.fullpath}')
+
+        ## capture time
+        if exif_data is not None:
+            for key in exif_data.get_all().keys():
+                logger.debug(f"\t\t{key} = {exif_data[key]}")    
+            timestamp = exif_data.get('datetime_original')
+            if timestamp is not None:
+                parts = timestamp.split(' ')
+                parts = parts[0].split(':')
+                self.timestamp = datetime.datetime(int(parts[0]), int(parts[1]), int(parts[2]))
+            self.rotation = exif_data.get('orientation')
+
+        if iptc_data is not None:
+            for key in iptc_data._data:
+                logger.debug(f"\t\t{key} = {iptc_data._data[key]}")    
+            self.keywords = iptc_data['keywords']
+
+    # def loadExif(self):
+    #     try:
+    #         with open(self.fullpath, 'rb') as image_file:
+    #             self.exif = exif.Image(image_file)
+    #     except:
+    #         logger.warning(f'Failed to load exif info from {self.fullpath}')
 
     def GetExifAttr(self, attr):
         if self.HasExif():
             return self.exif.get(attr)
         return None
 
-    def GetKeywords(self):
-        if self.HasIPTC():
-            return self.info['keywords']
-        return []
