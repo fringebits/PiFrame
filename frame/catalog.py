@@ -9,9 +9,8 @@ import random
 from .photo import Photo
 
 class Config:
-    def __init__(self, basepath=None):
-        self.basepath = basepath
-        self.recurse = True
+    def __init__(self):
+        self.last_index = 0
 
 class Catalog:
     PhotoExtensions = ['.jpg', '.png']
@@ -21,24 +20,21 @@ class Catalog:
     def __init__(self, source):
         self.source = source
         self.photos = []
+        self.config = Config()
         self.load_database(False)
 
-    # def load_config(self):
-    #     try:
-    #         with open(Catalog.Config) as f:
-    #             data = json.load(f)
-    #         self.config = data
-    #         return True
-    #     except FileNotFoundError:
-    #         return False
-    #     # except:
-    #     #     # This is something other than missing a file! (probably bad data)
-    #     #     return False
+    def load_config(self):
+        try:
+            with open(Catalog.Config) as f:
+                data = json.load(f)
+            self.config.last_index = data['last_index']
+        except FileNotFoundError:
+            return
 
-    # def write_config(self):
-    #     with open(Catalog.Filename, 'w') as f:
-    #         json_object = json.dumps(self, default=lambda o: o.__dict__, indent=4)
-    #         f.write(json_object)
+    def write_config(self):
+        with open(Catalog.Config, 'w') as f:
+            json_object = json.dumps(self.config, default=lambda o: o.__dict__, indent=4)
+            f.write(json_object)
 
     def load_database(self, force_init):
         is_new = not os.path.exists(Catalog.Database)
@@ -50,7 +46,7 @@ class Catalog:
             try:
                 with open(Catalog.Database) as f:
                     data = json.load(f)
-                self.photos = data
+                self.photos = data['photos']
             except:
                 assert False
         else:
@@ -59,12 +55,13 @@ class Catalog:
 
     def write_database(self):
         with open(Catalog.Database, 'w') as f:
-            json_object = json.dumps(self.photos, default=lambda o: o.__dict__, indent=4)
+            json_object = json.dumps(self, default=lambda o: o.__dict__, indent=4)
             f.write(json_object)
 
     def init_database(self):
         data = self.source.Run()
         self.photos = [x.fullpath for x in data]
+        random.shuffle(self.photos)
 
     def numPhotos(self):
         return len(self.photos)
@@ -75,4 +72,7 @@ class Catalog:
         fullpath = self.photos[index % num]
         photo = Photo(fullpath)
         photo.LoadImage(mode)
+
+        self.config.last_index = index
+        self.write_config()
         return photo

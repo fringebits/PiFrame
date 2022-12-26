@@ -51,7 +51,7 @@ class Frame:
 
     def InputHandler(self, events):
         """A function to handle keyboard/mouse/device input events. """
-        updateNextFrameEvent = False
+        updateNextFrameEvent = (self.runtime == 0)
         for event in events:  # Hit the ESC key to quit the slideshow.
             if (event.type == self.NextImageEvent and self.IsAutomatic):
                 self.NextImage(+1)
@@ -81,6 +81,7 @@ class Frame:
 
         if updateNextFrameEvent:
             pygame.time.set_timer(Frame.NextImageEvent, self.WaitTime)
+            updateNextFrameEvent = False
 
     def GetCurrentIndex(self):
         return self.index
@@ -97,11 +98,16 @@ class Frame:
     def NextImage(self, delta=1):
         logger.debug(f"NextImage: index={self.index}, delta={delta}")
 
+        if delta is None:
+            delta = 0
+            self.index = self.lib.config.last_index
+
         #self.lib.UnloadPhoto(self.index)
         self.index += delta
         self.photo = self.lib.LoadPhoto(self.index, self.mode)
         #self.lib.LoadPhoto(self.index + 1, self.mode)
         self.reset_timer = True
+        
         self.runtime = 0
 
         # if self.photo is not None:
@@ -118,7 +124,7 @@ class Frame:
         if self.reset_timer:
             self.runtime = 0
             self.reset_timer = False
-            
+
         self.screen.fill(self.BackgroundColor)
         if self.photo is not None:
             image, offset = self.photo.GetImage(self.mode)
@@ -182,7 +188,7 @@ class Frame:
 
         pygame.time.set_timer(Frame.NextImageEvent, Frame.WaitTime)
 
-        self.NextImage(0)
+        self.NextImage(None)
         self.IsRunning = True
         clock = pygame.time.Clock()
 
