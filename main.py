@@ -32,6 +32,7 @@ def main():
     parser.add_argument("--debug", help="Debug mode, forces use of windows", action="store_true")
     parser.add_argument("--noserver", help="Disable use of webserver", action="store_true")
     parser.add_argument("--source", help="Path to images to load.", default="./content")
+    parser.add_argument("--refresh", help="Reset and ignore existing catalog.", action="store_true")
     args = parser.parse_args()
 
     init_logs(args.debug)
@@ -48,7 +49,7 @@ def main():
     frame = None
     
     try:
-        catalog = Catalog(importer)
+        catalog = Catalog(importer, args.refresh)
 
         frame = Frame(catalog)
 

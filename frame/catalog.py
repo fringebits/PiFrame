@@ -17,11 +17,11 @@ class Catalog:
     Config = 'config.json'
     Database = 'catalog.json'
 
-    def __init__(self, source):
+    def __init__(self, source, refresh):
         self.source = source
         self.photos = []
         self.config = Config()
-        self.load_database(False)
+        self.load_database(refresh)
 
     def load_config(self):
         try:
@@ -63,13 +63,30 @@ class Catalog:
         self.photos = [x.fullpath for x in data]
         random.shuffle(self.photos)
 
+    def update_database(self):
+        logger.info('update_database')
+        files = self.source.Run()
+        photos = [x.fullpath for x in files]
+        new_photos = [x for x in photos if x not in self.photos]
+        del_photos = [x for x in self.photos if x not in self.photos]
+        for item in new_photos:
+            # insert this item in a random position between self.config.last_index and end of the list
+            index = random.randint(self.config.last_index, len(self.photos))
+            self.photos.insert(index, item)
+            logger.info(f'Insert [{item}] at index={index}')
+        for item in del_photos:
+            self.photos.remove(item)
+            logger.info(f'Removing [{item}]')
+        self.write_database()
+
     def numPhotos(self):
         return len(self.photos)
 
     def LoadPhoto(self, index, mode):
         num = self.numPhotos()
         assert num > 0, "Catalog doesn't have any photos"
-        fullpath = self.photos[index % num]
+        index = index % num
+        fullpath = self.photos[index]
         photo = Photo(fullpath)
         photo.LoadImage(mode)
 

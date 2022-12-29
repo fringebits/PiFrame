@@ -2,3 +2,4 @@ exif
 IPTCInfo3
 pygame
 bottle
+pytest
