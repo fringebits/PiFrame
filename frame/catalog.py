@@ -1,4 +1,3 @@
-
 import logging
 logger = logging.getLogger()
 
@@ -7,34 +6,17 @@ import os
 import utils
 import random
 from .photo import Photo
-
-class Config:
-    def __init__(self):
-        self.last_index = 0
+from .config import Config
+from .folder_import import FolderImport
 
 class Catalog:
     PhotoExtensions = ['.jpg', '.png']
-    Config = 'config.json'
     Database = 'catalog.json'
 
-    def __init__(self, source):
-        self.source = source
+    def __init__(self, config):
         self.photos = []
-        self.config = Config()
-        self.load_database(False)
-
-    def load_config(self):
-        try:
-            with open(Catalog.Config) as f:
-                data = json.load(f)
-            self.config.last_index = data['last_index']
-        except FileNotFoundError:
-            return
-
-    def write_config(self):
-        with open(Catalog.Config, 'w') as f:
-            json_object = json.dumps(self.config, default=lambda o: o.__dict__, indent=4)
-            f.write(json_object)
+        self.config = config
+        self.load_database(self.config.force_init)
 
     def load_database(self, force_init):
         is_new = not os.path.exists(Catalog.Database)
@@ -59,20 +41,24 @@ class Catalog:
             f.write(json_object)
 
     def init_database(self):
-        data = self.source.Run()
+        logger.debug(f"init_database")
+        files = []
+        importer = FolderImport()
+        importer.AddPath(self.config.source, True)
+        data = importer.Run()
         self.photos = [x.fullpath for x in data]
         random.shuffle(self.photos)
 
-    def numPhotos(self):
+    def getNumPhotos(self):
         return len(self.photos)
 
     def LoadPhoto(self, index, mode):
-        num = self.numPhotos()
+        num = self.getNumPhotos()
         assert num > 0, "Catalog doesn't have any photos"
         fullpath = self.photos[index % num]
         photo = Photo(fullpath)
         photo.LoadImage(mode)
 
         self.config.last_index = index
-        self.write_config()
+        self.config.save_config() # should create another runtime data file to track this
         return photo

@@ -20,7 +20,7 @@ def index():
     logger.debug(f"server.route(index):  Frame={frame}, Host={host}, Port={port}")
     photo = frame.GetCurrentPhoto()
     return f'''
-        Image {frame.GetCurrentIndex()} of {frame.GetNumPhotos()} <br>
+        Image {frame.GetCurrentIndex()} of {frame.getNumPhotos()} <br>
         IsPaused = {frame.IsPaused()} <br>
         Photo = {photo} <br>
         Title = {photo.fullpath} <br>

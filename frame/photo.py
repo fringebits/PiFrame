@@ -20,9 +20,11 @@ class Photo:
         self.title = None
         self.timestamp = datetime.datetime(1900, 1, 1)
         self.orientation = None
+        self.rotation = None
 
         ## image data
         self.image = None
+        self.info = None
         self.offset = None
 
     def __str__(self):
@@ -115,32 +117,34 @@ class Photo:
         exif_data = None
         iptc_data = None
 
-        #try:
-        with open(self.fullpath, 'rb') as image_file:
-            exif_data = exif.Image(image_file)                
-        # except:
-        #     logger.warning(f'Failed to load exif from {self.fullpath}')
+        try:
+            with open(self.fullpath, 'rb') as image_file:
+                exif_data = exif.Image(image_file)                
+        except:
+             logger.warning(f'Failed to load exif from {self.fullpath}')
+             return
 
-        #try:
-        self.info = IPTCInfo(self.fullpath)
-        # except:
-        #     logger.warning(f'Failed to load iptc info from {self.fullpath}')
+        try:
+            self.info = IPTCInfo(self.fullpath)
 
-        ## capture time
-        if exif_data is not None:
-            for key in exif_data.get_all().keys():
-                logger.debug(f"\t\t{key} = {exif_data[key]}")    
-            timestamp = exif_data.get('datetime_original')
-            if timestamp is not None:
-                parts = timestamp.split(' ')
-                parts = parts[0].split(':')
-                self.timestamp = datetime.datetime(int(parts[0]), int(parts[1]), int(parts[2]))
-            self.rotation = exif_data.get('orientation')
+            ## capture time
+            if exif_data is not None:
+                for key in exif_data.get_all().keys():
+                    logger.debug(f"\t\t{key} = {exif_data[key]}")    
+                timestamp = exif_data.get('datetime_original')
+                if timestamp is not None:
+                    parts = timestamp.split(' ')
+                    parts = parts[0].split(':')
+                    self.timestamp = datetime.datetime(int(parts[0]), int(parts[1]), int(parts[2]))
+                self.rotation = exif_data.get('orientation')
 
-        if iptc_data is not None:
-            for key in iptc_data._data:
-                logger.debug(f"\t\t{key} = {iptc_data._data[key]}")    
-            self.keywords = iptc_data['keywords']
+            if iptc_data is not None:
+                for key in iptc_data._data:
+                    logger.debug(f"\t\t{key} = {iptc_data._data[key]}")    
+                self.keywords = iptc_data['keywords']
+
+        except:
+            logger.warning(f'Failed to load iptc info from {self.fullpath}')
 
     # def loadExif(self):
     #     try:

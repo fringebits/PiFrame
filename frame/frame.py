@@ -2,6 +2,7 @@
 from pygame.constants import USEREVENT
 from .photo import Photo
 from .catalog import Catalog
+from .config import Config
 
 from datetime import date, datetime, timedelta
 import logging
@@ -23,7 +24,7 @@ class Task_ResetTimer(Task):
 
 class Frame:
     NextImageEvent = pygame.USEREVENT + 0
-    WaitTime = 10000
+    WaitTime = 1000
     WaitDelta = 1000
     FPS = 30
     BackgroundColor = (0, 0, 0) #(128, 128, 0)
@@ -34,7 +35,10 @@ class Frame:
     DefaultCursor = (15, 15)
     KeywordFilter = {b'GUTMANN', b'people', b'instagram'}
 
-    def __init__(self, catalog):
+    def __init__(self, config, catalog):
+        self.config = config
+        self.WaitTime = self.config.wait_time
+
         self.index = 0
         self.lib = catalog
         self.photo = None
@@ -128,30 +132,34 @@ class Frame:
         self.screen.fill(self.BackgroundColor)
         if self.photo is not None:
             image, offset = self.photo.GetImage(self.mode)
-            self.screen.blit(image, offset)
 
-            if not self.IsAutomatic:
-                self.OutputText(f'Paused', (255, 0, 0))
-                self.OutputNewline()
+            if image is None:
+                updateNextFrameEvent = True
+            else:
+                self.screen.blit(image, offset)
 
-            if self.showDebug:
-                elapsed = (self.runtime / 1000.0)
-                self.OutputText(f'{self.index:-5} {elapsed:.1f}', (255, 0, 0))
-                self.OutputNewline()
+                if not self.IsAutomatic:
+                    self.OutputText(f'Paused', (255, 0, 0))
+                    self.OutputNewline()
 
-            if self.showInfo:
-                # year, month, day
-                timestamp = self.photo.timestamp
-                self.OutputText(f'{timestamp.year}', (255, 0, 0))
-                self.OutputText(f'{timestamp:%B}', (255, 0, 0))
-                # delta = datetime.now() - timestamp
-                # total_years = delta.total_seconds() / (60 * 60 * 24 * 365)
-                # if total_years > 2:
-                #     self.OutputText(f'{total_years}yrs ago', (255, 0, 0))
-                self.OutputNewline()
-                keywords = [k for k in self.photo.keywords if k not in Frame.KeywordFilter]
-                for k in keywords:
-                    self.OutputText(k, (255, 0, 0))
+                if self.showDebug:
+                    elapsed = (self.runtime / 1000.0)
+                    self.OutputText(f'{self.index:-5} {elapsed:.1f}', (255, 0, 0))
+                    self.OutputNewline()
+
+                if self.showInfo:
+                    # year, month, day
+                    timestamp = self.photo.timestamp
+                    self.OutputText(f'{timestamp.year}', (255, 0, 0))
+                    self.OutputText(f'{timestamp:%B}', (255, 0, 0))
+                    # delta = datetime.now() - timestamp
+                    # total_years = delta.total_seconds() / (60 * 60 * 24 * 365)
+                    # if total_years > 2:
+                    #     self.OutputText(f'{total_years}yrs ago', (255, 0, 0))
+                    self.OutputNewline()
+                    keywords = [k for k in self.photo.keywords if k not in Frame.KeywordFilter]
+                    for k in keywords:
+                        self.OutputText(k, (255, 0, 0))
 
         pygame.display.flip()
 
@@ -159,9 +167,9 @@ class Frame:
 
         # Test for image support except pygame.error as err: print("Failed to display %s: %s" % (photo.fullpath, err))
 
-    def Run(self, isDebug):
+    def Run(self):
         
-        if isDebug:
+        if self.config.debug:
             self.isWindowed = True
             self.showDebug = True
             self.showInfo = True

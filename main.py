@@ -1,6 +1,8 @@
 from frame.folder_import import FolderImport
 from frame.frame import Frame
 from frame.catalog import Catalog
+from frame.config import Config
+
 import frame.server as server
 import argparse
 import os
@@ -28,17 +30,15 @@ def main():
     logger.debug("PiFrame main")
     logger.info(f'python-version = {platform.python_version()}')
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug", help="Debug mode, forces use of windows", action="store_true")
-    parser.add_argument("--noserver", help="Disable use of webserver", action="store_true")
-    parser.add_argument("--source", help="Path to images to load.", default="./content")
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--debug", help="Debug mode, forces use of windows", action="store_true")
+    # parser.add_argument("--noserver", help="Disable use of webserver", action="store_true")
+    # args = parser.parse_args()
 
-    init_logs(args.debug)
+    config = Config()
 
-    importer = FolderImport()
-    logger.debug(f'Image Sorce = {args.source}')
-    importer.AddPath(args.source, True)
+    init_logs(config.debug)
+
     # if args.debug:
     #     importer.AddPath("//merlin/photo/BestOf2018", True)
     # else:
@@ -48,15 +48,15 @@ def main():
     frame = None
     
     try:
-        catalog = Catalog(importer)
+        catalog = Catalog(config)
 
-        frame = Frame(catalog)
+        frame = Frame(config, catalog)
 
-        if not args.noserver:
+        if config.server:
             # start the bottle-webserver
-            server.Run(frame, args.debug)
+            server.Run(config, frame)
         
-        frame.Run(args.debug)
+        frame.Run()
 
     finally:
         if frame is not None:
