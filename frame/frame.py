@@ -11,16 +11,7 @@ logger = logging.getLogger()
 import sys
 import time
 import pygame
-from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d
-
-class Task:
-    def run(frame):
-        pass
-
-
-class Task_ResetTimer(Task):
-    def run(frame):
-        frame.runtime = 0
+from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d, K_r
 
 class Frame:
     NextImageEvent = pygame.USEREVENT + 0
@@ -80,6 +71,8 @@ class Frame:
                     self.showInfo = not self.showInfo
                 elif event.key == K_d:
                     self.showDebug = not self.showDebug
+                elif event.key == K_r: # refresh the catalog
+                    self.lib.refresh_database()
             elif (event.type == QUIT):
                 self.IsRunning = False
 

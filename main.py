@@ -30,11 +30,6 @@ def main():
     logger.debug("PiFrame main")
     logger.info(f'python-version = {platform.python_version()}')
 
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("--debug", help="Debug mode, forces use of windows", action="store_true")
-    # parser.add_argument("--noserver", help="Disable use of webserver", action="store_true")
-    # args = parser.parse_args()
-
     config = Config()
 
     init_logs(config.debug)

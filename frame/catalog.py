@@ -55,7 +55,8 @@ class Catalog:
     def LoadPhoto(self, index, mode):
         num = self.getNumPhotos()
         assert num > 0, "Catalog doesn't have any photos"
-        fullpath = self.photos[index % num]
+        index = index % num
+        fullpath = self.photos[index]
         photo = Photo(fullpath)
         photo.LoadImage(mode)
 
