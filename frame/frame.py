@@ -180,12 +180,12 @@ class Frame:
         pygame.display.set_caption("PiFrame")
         if self.isWindowed:
             self.mode = (768, 480)
+            self.screen = pygame.display.set_mode(self.mode)
         else:
             modes = pygame.display.list_modes()
             self.mode = max(modes)
             logging.debug(f"Setting mode = {self.mode}")
-
-        self.screen = pygame.display.set_mode(self.mode)
+            self.screen = pygame.display.set_mode(self.mode, pygame.FULLSCREEN | pygame.SCALED)
 
         pygame.time.set_timer(Frame.NextImageEvent, Frame.WaitTime)
 
