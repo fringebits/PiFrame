@@ -1,5 +1,6 @@
 import logging
 logger = logging.getLogger()
+
 import pygame
 import utils
 import exif

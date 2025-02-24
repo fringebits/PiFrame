@@ -1,7 +1,7 @@
 catalog.json
 *.log.*
 content/
-workspace/
+env/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

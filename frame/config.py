@@ -12,6 +12,8 @@ class Config:
         self.source = ''
         self.force_init = False
         self.wait_time = 10000
+        self.slack_token = ''
+        self.slack_channel = ''
         self.load_config()
         
     def load_config(self):
@@ -25,6 +27,8 @@ class Config:
             self.force_init = data.get('force_init', False)
             self.debug = data.get('debug', False)
             self.server = data.get('server', False)
+            self.slack_token = data.get('slack_token', '')
+            self.slack_channel = data.get('slack_channel', '')
 
         except FileNotFoundError:
             return

@@ -3,6 +3,7 @@ from pygame.constants import USEREVENT
 from .photo import Photo
 from .catalog import Catalog
 from .config import Config
+from .slack_helper import Slack
 
 from datetime import date, datetime, timedelta
 import logging
@@ -11,7 +12,7 @@ logger = logging.getLogger()
 import sys
 import time
 import pygame
-from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d, K_r
+from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d, K_r, K_m
 
 class Frame:
     NextImageEvent = pygame.USEREVENT + 0
@@ -40,6 +41,7 @@ class Frame:
         self.runtime = 0
         self.pos = Frame.DefaultCursor
         self.tasks = []
+        self.slack = Slack(config)
 
     def Shutdown(self):
         pygame.quit()
@@ -59,6 +61,8 @@ class Frame:
                 elif event.key == K_RIGHT:
                     self.IsAutomatic = False
                     self.NextImage(+1)
+                elif event.key == K_m:
+                    self.SendImage()
                 elif event.key == K_p: # speed up the slide show
                     self.WaitTime = max(1000, self.WaitTime - self.WaitDelta)
                     updateNextFrameEvent = True
@@ -112,6 +116,10 @@ class Frame:
         # self.photo = self.lib.GetPhoto(self.index)
         # self.photo.LoadImage(self.mode)
         # self.lib.LoadPhoto(self.index+1)
+
+    def SendImage(self):
+        message = f"Index={self.index}, Filename={self.photo.fullpath}"
+        self.slack.send(message, self.photo.fullpath)
 
     def Tick(self, dT):
         self.pos = Frame.DefaultCursor

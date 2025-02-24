@@ -1,5 +1,6 @@
+bottle
 exif
 IPTCInfo3
 pygame
-bottle
 pytest
+slack_sdk
