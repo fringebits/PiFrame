@@ -11,3 +11,15 @@ pip install -r requirements.txt
 
 env/Scripts/activate
 
+To rebuild the photo catalog instead of loading an existing `catalog.json`, run:
+
+```bash
+python main.py --refresh
+```
+
+To override the slideshow wait time (in milliseconds) from the command line:
+
+```bash
+python main.py --wait-time 5000
+```
+

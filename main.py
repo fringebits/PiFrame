@@ -32,6 +32,22 @@ def main():
 
     config = Config()
 
+    # parse CLI args and allow overriding config values
+    parser = argparse.ArgumentParser(description='PiFrame')
+    parser.add_argument('--refresh', action='store_true', help='Rebuild the catalog rather than loading existing file')
+    parser.add_argument('--debug', action='store_true', help='Start with debug info on')
+    parser.add_argument('--wait-time', type=int, help='Override config wait_time in milliseconds')
+    args = parser.parse_args()
+
+    if args.refresh:
+        config.force_init = True
+
+    if args.wait_time is not None:
+        config.wait_time = args.wait_time * 1000
+
+    if args.debug is not None:
+        config.debug = args.debug
+
     init_logs(config.debug)
 
     # if args.debug:

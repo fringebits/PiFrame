@@ -12,12 +12,13 @@ logger = logging.getLogger()
 import sys
 import time
 import pygame
-from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d, K_r, K_m
+from pygame.locals import QUIT, KEYDOWN, K_ESCAPE, K_SPACE, K_LEFT, K_RIGHT, K_i, K_o, K_p, K_d, K_r, K_s
 
 class Frame:
     NextImageEvent = pygame.USEREVENT + 0
     WaitTime = 1000
     WaitDelta = 1000
+    PauseLimit = 1000 * 60 * 5 # 5-minute pause limit
     FPS = 30
     BackgroundColor = (0, 0, 0) #(128, 128, 0)
     IsAutomatic = True
@@ -61,8 +62,6 @@ class Frame:
                 elif event.key == K_RIGHT:
                     self.IsAutomatic = False
                     self.NextImage(+1)
-                elif event.key == K_m:
-                    self.SendImage()
                 elif event.key == K_p: # speed up the slide show
                     self.WaitTime = max(1000, self.WaitTime - self.WaitDelta)
                     updateNextFrameEvent = True
@@ -77,6 +76,8 @@ class Frame:
                     self.showDebug = not self.showDebug
                 elif event.key == K_r: # refresh the catalog
                     self.lib.refresh_database()
+                elif event.key == K_s:
+                    self.SendImage()
             elif (event.type == QUIT):
                 self.IsRunning = False
 
@@ -142,6 +143,8 @@ class Frame:
                 if not self.IsAutomatic:
                     self.OutputText(f'Paused', (255, 0, 0))
                     self.OutputNewline()
+                    if self.runtime > self.PauseLimit:
+                        self.IsAutomatic = True                    
 
                 if self.showDebug:
                     elapsed = (self.runtime / 1000.0)
