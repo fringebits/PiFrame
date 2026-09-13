@@ -1,4 +1,8 @@
 catalog.json
+catalogs/
+logs/
+transient/
+secrets.json
 *.log.*
 content/
 env/

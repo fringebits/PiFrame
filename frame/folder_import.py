@@ -5,10 +5,9 @@ logger = logging.getLogger()
 import os
 import utils
 from .photo import Photo
+from .constants import PHOTO_EXTENSIONS
 
 class Folder:
-    PhotoExtensions = ['.jpg', '.png']
-
     def __init__(self, basepath, recurse):
         self.basepath = basepath
         self.recurse = recurse
@@ -33,7 +32,7 @@ class Folder:
                 if os.path.isdir(file): dirs.append(file)
                 if os.path.isfile(file):
                     (name, ext) = os.path.splitext(file)
-                    if ("SYNOPHOTO_THUMB" not in name) and  (ext in self.PhotoExtensions):
+                    if ("SYNOPHOTO_THUMB" not in name) and  (ext in PHOTO_EXTENSIONS):
                         files.append(Photo(file))
 
             if recurse == True:

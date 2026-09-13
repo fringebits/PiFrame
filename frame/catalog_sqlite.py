@@ -8,9 +8,10 @@ import os
 import utils
 import random
 from .photo import Photo
+from .constants import PHOTO_EXTENSIONS
 
 class CatalogSqlite:
-    PhotoExtensions = ['.jpg', '.png']
+    PhotoExtensions = PHOTO_EXTENSIONS
     Filename = 'catalog.json'
     Database = 'catalog.db'
 

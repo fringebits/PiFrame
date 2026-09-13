@@ -1,8 +1,11 @@
 {
-    "last_index": 8,
-    "source": "//merlin/photo/Frame/RedFrame",
+    "sources": {
+        "test": "//merlin/photo/Frame/Test",
+        "red": "//merlin/photo/Frame/RedFrame",
+        "ah": "//merlin/photo/Frame/AndrewHeidi"
+    },
     "force_init": true,
-    "wait_time": 8000,
-    "debug": false,
+    "wait_time": 1000,
+    "debug": true,
     "server": false
 }

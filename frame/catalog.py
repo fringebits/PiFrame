@@ -8,25 +8,28 @@ import random
 from .photo import Photo
 from .config import Config
 from .folder_import import FolderImport
+from .constants import TRANSIENT_DIRECTORY
 
 class Catalog:
-    PhotoExtensions = ['.jpg', '.png']
-    Database = 'catalog.json'
+    DatabaseDirectory = TRANSIENT_DIRECTORY
 
     def __init__(self, config):
         self.photos = []
         self.config = config
+        self.database = os.path.join(
+            Catalog.DatabaseDirectory,
+            f'cat-{self.config.source_name}.json')
         self.load_database(self.config.force_init)
 
     def load_database(self, force_init):
-        is_new = not os.path.exists(Catalog.Database)
+        is_new = not os.path.exists(self.database)
         if force_init and not is_new:
-            os.remove(Catalog.Database)
+            os.remove(self.database)
             is_new = True
 
         if not is_new:
             try:
-                with open(Catalog.Database) as f:
+                with open(self.database) as f:
                     data = json.load(f)
                 self.photos = data['photos']
             except:
@@ -36,9 +39,9 @@ class Catalog:
             self.write_database()
 
     def write_database(self):
-        with open(Catalog.Database, 'w') as f:
-            json_object = json.dumps(self, default=lambda o: o.__dict__, indent=4)
-            f.write(json_object)
+        os.makedirs(Catalog.DatabaseDirectory, exist_ok=True)
+        with open(self.database, 'w') as f:
+            json.dump({'photos': self.photos}, f, indent=4)
 
     def init_database(self):
         logger.debug(f"init_database")
@@ -61,5 +64,5 @@ class Catalog:
         photo.LoadImage(mode)
 
         self.config.last_index = index
-        self.config.save_config() # should create another runtime data file to track this
+        self.config.save_state()
         return photo

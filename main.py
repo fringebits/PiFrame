@@ -2,6 +2,7 @@ from frame.folder_import import FolderImport
 from frame.frame import Frame
 from frame.catalog import Catalog
 from frame.config import Config
+from frame.constants import TRANSIENT_DIRECTORY
 
 import frame.server as server
 import argparse
@@ -11,9 +12,10 @@ from logging.handlers import RotatingFileHandler
 import logging
 logger = logging.getLogger()
 
-logFile = 'piframe.log'
+logFile = os.path.join(TRANSIENT_DIRECTORY, 'logs', 'piframe.log')
 
 def init_logs(debug):
+    os.makedirs(os.path.dirname(logFile), exist_ok=True)
     handler = RotatingFileHandler(logFile, mode='a', backupCount=5)
     if os.path.isfile(logFile):
         handler.doRollover()
@@ -37,7 +39,11 @@ def main():
     parser.add_argument('--refresh', action='store_true', help='Rebuild the catalog rather than loading existing file')
     parser.add_argument('--debug', action='store_true', help='Start with debug info on')
     parser.add_argument('--wait-time', type=int, help='Override config wait_time in milliseconds')
+    parser.add_argument('--source', choices=config.sources, default=config.source_name, help='Named photo source')
     args = parser.parse_args()
+
+    config.select_source(args.source)
+    config.save_state()
 
     if args.refresh:
         config.force_init = True
