@@ -33,7 +33,7 @@ python main.py --wait-time 5000
 * Create a mount point
     * sudo mkdir -p /mnt/photos
 * Mount to that end point
-    * sudo mount -t nfs 192.168.1.7:/volume1/photo /mnt/photo
+    * sudo mount -t nfs 192.168.1.7:/volume1/photo /mnt/photos
 * Verify the connection
     * df -h 
 
@@ -42,4 +42,3 @@ python main.py --wait-time 5000
 * python3 -m venv venv
 * source venv/bin/activate
 * pip install -r requirements.txt
-* 
