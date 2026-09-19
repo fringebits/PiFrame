@@ -47,23 +47,18 @@ class Photo:
         rot = self.rotation
         if rot is None:
             ""
-        if rot == 2:
-            print("RotateNoneFlipX")
-        elif rot == 3:
-            print("Rotate180FlipNone")
-            img = pygame.transform.rotate(img, 180)
-        elif rot == 4:
-            print("Rotate180FlipX")
-        elif rot == 5:
-            print("Rotate90FlipX")
-        elif rot == 6:
-            print("Rotate90FlipNone")
-            img = pygame.transform.rotate(img, -90)
-        elif rot == 7:
-            print("Rotate270FlipX")
-        elif rot == 8:
-            print("Rotate270FlipNone")
-            img = pygame.transform.rotate(img, 270)
+        else:
+            if rot == 3:
+                print("Rotate180FlipNone, rot=", rot)
+                img = pygame.transform.rotate(img, 180)
+            elif rot == 6:
+                print("Rotate90FlipNone, rot=", rot)
+                img = pygame.transform.rotate(img, -90)
+            elif rot == 8:
+                print("Rotate270FlipNone, rot=", rot)
+                img = pygame.transform.rotate(img, -270)
+            else:
+                print("Unknown rotation, rot=", rot)
 
         if mode is not None:        
             # scale to FIT
